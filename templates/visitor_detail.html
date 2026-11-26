@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Visitor Details | CampusGate{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">VISITOR RECORD · {{ visitor.badge }}</p>
+    <h1>{{ visitor.name }}</h1>
+    <p class="muted">{{ visitor.organization or 'No organization provided' }}</p>
+  </div>
+  <a class="button button-outline" href="{{ url_for('dashboard') }}">← Back to dashboard</a>
+</div>
+
+<section class="panel detail-panel">
+  <div class="detail-header">
+    <span class="avatar avatar-large">{{ visitor.name[:1]|upper }}</span>
+    <div>
+      <h2>{{ visitor.name }}</h2>
+      <span class="status status-{{ visitor.status|lower|replace(' ', '-') }}">{{ visitor.status }}</span>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    {% for label, value in [
+      ('Badge Number', visitor.badge), ('Phone', visitor.phone),
+      ('Email', visitor.email), ('Organization', visitor.organization),
+      ('Purpose', visitor.purpose), ('Person to Meet', visitor.host),
+      ('Department', visitor.department), ('ID Proof', visitor.id_proof),
+      ('Vehicle', visitor.vehicle), ('Check-in Time', visitor.checkin_time),
+      ('Check-out Time', visitor.checkout_time), ('Notes', visitor.notes),
+      ('Registered', visitor.created_at)
+    ] %}
+    <div class="detail-item">
+      <small>{{ label }}</small>
+      <strong>{{ value or '—' }}</strong>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="form-actions">
+    {% if visitor.status == 'Expected' %}
+    <form method="post" action="{{ url_for('checkin_visitor', visitor_id=visitor.id) }}">
+      <button class="button button-primary" type="submit">Check in visitor</button>
+    </form>
+    {% elif visitor.status == 'On Campus' %}
+    <form method="post" action="{{ url_for('checkout_visitor', visitor_id=visitor.id) }}">
+      <button class="button button-dark" type="submit">Check out visitor</button>
+    </form>
+    {% endif %}
+    <a class="button button-outline" href="{{ url_for('edit_visitor', visitor_id=visitor.id) }}">Edit Record</a>
+  </div>
+</section>
+{% endblock %}

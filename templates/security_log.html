@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Security Dashboard | CampusGate{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div><p class="eyebrow">SECURITY DESK</p><h1>Visitor Dashboard</h1><p class="muted">Monitor campus entry and visitor movements.</p></div>
+  <a class="button button-primary desktop-register" href="{{ url_for('register_visitor') }}">+ Register Visitor</a>
+</section>
+
+<section class="stats-grid">
+  <article class="stat-card"><div class="stat-top"><span class="stat-icon green">♙</span><span class="live">LIVE</span></div><strong>{{ counts.on_campus }}</strong><span>On Campus</span><small>Currently checked in</small></article>
+  <article class="stat-card"><div class="stat-top"><span class="stat-icon gray">↗</span></div><strong>{{ counts.checked_out }}</strong><span>Checked Out</span><small>Visitor records</small></article>
+  <article class="stat-card"><div class="stat-top"><span class="stat-icon blue">▤</span></div><strong>{{ counts.total }}</strong><span>Total Records</span><small>All visitor entries</small></article>
+</section>
+
+<section class="panel">
+  <div class="panel-heading"><div><h2>Visitor Log</h2><p class="muted">Search and manage visitor records.</p></div><a class="button button-outline" href="{{ url_for('dashboard') }}">↻ Refresh</a></div>
+  <form class="toolbar" method="get" action="{{ url_for('dashboard') }}">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search name, organization, badge, phone or vehicle...">
+    <select name="status" aria-label="Filter visitor status">
+      {% for option in ['All', 'On Campus', 'Expected', 'Checked Out'] %}
+      <option value="{{ option }}" {% if status == option %}selected{% endif %}>{{ option }}</option>
+      {% endfor %}
+    </select>
+    <button class="button button-dark" type="submit">Search</button>
+    <a class="button button-outline" href="{{ url_for('dashboard') }}">Clear</a>
+  </form>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Badge / Visitor</th><th>Purpose</th><th>Person to Meet</th><th>Check-in</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for v in visitors %}
+        <tr>
+          <td><div class="visitor-cell"><span class="avatar">{{ v.name[:1]|upper }}</span><span><strong>{{ v.name }}</strong><small>{{ v.badge }} · {{ v.organization or 'No organization' }}</small></span></div></td>
+          <td>{{ v.purpose }}<small class="table-sub">{{ v.department or 'Department not specified' }}</small></td>
+          <td>{{ v.host or '—' }}<small class="table-sub">{{ v.department or '—' }}</small></td>
+          <td>{{ v.checkin_time or '—' }}</td>
+          <td><span class="status status-{{ v.status|lower|replace(' ', '-') }}">{{ v.status }}</span></td>
+          <td><div class="actions"><button class="button button-small button-outline" type="button" onclick="showVisitor(this)"
+            data-id="{{ v.id }}" data-name="{{ v.name }}" data-phone="{{ v.phone }}" data-email="{{ v.email or '' }}"
+            data-category="{{ v.organization }}" data-purpose="{{ v.purpose }}" data-address="{{ v.address or '' }}"
+            data-city="{{ v.city or '' }}" data-id-proof="{{ v.id_proof or '' }}" data-id-reference="{{ v.id_reference or '' }}"
+            data-visit-date="{{ v.visit_date or '' }}" data-checkin="{{ v.checkin_time or '' }}"
+            data-checkout="{{ v.checkout_time or '' }}" data-status="{{ v.status }}" data-count="{{ v.number_of_visitors or 1 }}">View</button>
+          {% if v.status == 'Expected' %}
+            <form method="post" action="{{ url_for('checkin_visitor', visitor_id=v.id) }}"><button class="button button-small button-primary" type="submit">Check in</button></form>
+          {% elif v.status == 'On Campus' %}
+            <form method="post" action="{{ url_for('checkout_visitor', visitor_id=v.id) }}"><button class="button button-small button-dark" type="submit">Check out</button></form>
+          {% endif %}</div></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="empty">No visitor records found. Register a visitor to get started.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="table-count">Showing {{ visitors|length }} matching record(s) · {{ counts.total }} total records</p>
+</section>
+
+<section class="lower-grid">
+  <article class="panel">
+    <div class="panel-heading"><div><h2>Recent Gate Activity</h2><p class="muted">Latest visitor registrations and movements</p></div><span class="stat-icon green">↔</span></div>
+    {% for v in recent %}
+      <div class="activity-row"><span class="activity-dot"></span><div><strong>{{ v.name }}</strong><p>{{ v.badge }} · {{ v.status }}</p></div><small>{{ v.checkin_time or v.created_at }}</small></div>
+    {% else %}<p class="empty">No gate activity yet.</p>{% endfor %}
+  </article>
+  <article class="panel">
+    <div class="panel-heading"><div><h2>Desk Procedures</h2><p class="muted">Standard security checklist</p></div><span class="stat-icon blue">✓</span></div>
+    <ul class="procedure-list">
+      <li><strong>Verify identity</strong><span>Check the visitor's ID proof and purpose.</span></li>
+      <li><strong>Confirm the host</strong><span>Contact the person or department being visited.</span></li>
+      <li><strong>Issue a visitor badge</strong><span>Record badge and vehicle details where applicable.</span></li>
+      <li><strong>Record departure</strong><span>Check visitors out and collect their badges.</span></li>
+    </ul>
+  </article>
+</section>
+
+<dialog id="visitorModal" class="visitor-modal">
+  <div class="modal-heading"><div><p class="eyebrow">VISITOR RECORD</p><h2 id="modalName">Visitor details</h2></div><button class="modal-close" type="button" onclick="closeVisitor()" aria-label="Close">×</button></div>
+  <div class="detail-grid modal-details">
+    <div class="detail-item"><small>Visitor ID</small><strong id="modalId">—</strong></div>
+    <div class="detail-item"><small>Mobile</small><strong id="modalPhone">—</strong></div>
+    <div class="detail-item"><small>Email</small><strong id="modalEmail">—</strong></div>
+    <div class="detail-item"><small>Category</small><strong id="modalCategory">—</strong></div>
+    <div class="detail-item"><small>Purpose</small><strong id="modalPurpose">—</strong></div>
+    <div class="detail-item"><small>Address</small><strong id="modalAddress">—</strong></div>
+    <div class="detail-item"><small>City</small><strong id="modalCity">—</strong></div>
+    <div class="detail-item"><small>ID Proof</small><strong id="modalIdProof">—</strong></div>
+    <div class="detail-item"><small>ID Reference</small><strong id="modalIdReference">—</strong></div>
+    <div class="detail-item"><small>Visit Date</small><strong id="modalVisitDate">—</strong></div>
+    <div class="detail-item"><small>Check-in</small><strong id="modalCheckin">—</strong></div>
+    <div class="detail-item"><small>Check-out</small><strong id="modalCheckout">—</strong></div>
+    <div class="detail-item"><small>Number of visitors</small><strong id="modalCount">—</strong></div>
+    <div class="detail-item"><small>Status</small><strong id="modalStatus">—</strong></div>
+  </div>
+  <div class="modal-actions"><a id="modalEdit" class="button button-primary" href="#">Edit Record</a><button class="button button-outline" type="button" onclick="closeVisitor()">Close</button></div>
+</dialog>
+<script>
+function showVisitor(button) {
+  const fields = {id:'Id', phone:'Phone', email:'Email', category:'Category', purpose:'Purpose', address:'Address', city:'City', idProof:'IdProof', idReference:'IdReference', visitDate:'VisitDate', checkin:'Checkin', checkout:'Checkout', count:'Count', status:'Status'};
+  document.getElementById('modalName').textContent = button.dataset.name || 'Visitor details';
+  Object.entries(fields).forEach(([key, suffix]) => {
+    const el = document.getElementById('modal' + suffix);
+    if (el) el.textContent = button.dataset[key] || '—';
+  });
+  document.getElementById('modalEdit').href = '/security/visitor/' + button.dataset.id + '/edit';
+  document.getElementById('visitorModal').showModal();
+}
+function closeVisitor() { document.getElementById('visitorModal').close(); }
+</script>
+{% endblock %}

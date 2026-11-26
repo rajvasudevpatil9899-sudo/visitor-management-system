@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Security Visitor Log</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="page">
+    <section class="form-card">
+      <header class="form-header">
+        <h1>SECURITY VISITOR LOG</h1>
+        <p>Authorised staff only</p>
+      </header>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="messages">
+            {% for category, message in messages %}
+              <div class="message {{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% if visitors %}
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr>
+                {% for heading in ["Visitor ID", "Name", "Mobile", "Purpose", "Check-in", "Check-out", "Status", "Action"] %}
+                  <th style="text-align:left;padding:10px;border-bottom:1px solid #dce3ee;white-space:nowrap">{{ heading }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for v in visitors %}
+                <tr>
+                  <td style="padding:10px;border-bottom:1px solid #edf0f5">{{ v.visitor_id }}</td>
+                  <td style="padding:10px;border-bottom:1px solid #edf0f5">{{ v.full_name }}</td>
+                  <td style="padding:10px;border-bottom:1px solid #edf0f5">{{ v.mobile }}</td>
+                  <td style="padding:10px;border-bottom:1px solid #edf0f5">{{ v.purpose }}</td>
+                  <td style="padding:10px;border-bottom:1px solid #edf0f5;white-space:nowrap">{{ v.check_in_time }}</td>
+                  <td style="padding:10px;border-bottom:1px solid #edf0f5;white-space:nowrap">{{ v.check_out_time or "—" }}</td>
+                  <td style="padding:10px;border-bottom:1px solid #edf0f5">{{ v.status }}</td>
+                  <td style="padding:10px;border-bottom:1px solid #edf0f5">
+                    {% if not v.check_out_time %}
+                      <form method="post" action="{{ url_for('security_checkout', visitor_id=v.visitor_id) }}">
+                        <button class="submit-button" style="margin:0;padding:8px 10px;white-space:nowrap" type="submit">Record checkout</button>
+                      </form>
+                    {% else %}Completed{% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>No visitors have registered in this running demo yet.</p>
+      {% endif %}
+      <p style="margin-top:22px"><a href="{{ url_for('visitor_registration') }}">← Visitor registration form</a></p>
+      <p class="privacy-note">Demo only: add staff authentication and a persistent database before real use.</p>
+    </section>
+  </main>
+</body>
+</html>

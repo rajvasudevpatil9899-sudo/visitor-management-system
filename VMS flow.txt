@@ -1,0 +1,33 @@
+                 VISITOR
+                    │
+                    ▼
+        Opens VMS Registration Page
+                    │
+                    ▼
+          Fills Registration Form
+                    │
+                    ▼
+             Submit Form
+                    │
+                    ▼
+          Visitor Profile Created
+                    │
+                    ▼
+             QR Code Generated
+                    │
+                    ▼
+          Visitor shows QR to
+             Security
+                    │
+                    ▼
+             SECURITY SCANS
+                    │
+             ┌──────┴──────┐
+             │             │
+          First Scan    Second Scan
+             │             │
+             ▼             ▼
+          CHECK-IN      CHECK-OUT
+             │             │
+             ▼             ▼
+          Status = IN    Status = OUT

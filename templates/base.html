@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}CampusGate{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='security_dashboard.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('admin_dashboard') if session.get('role') == 'admin' else (url_for('dashboard') if session.get('role') == 'security' else url_for('register_visitor')) }}">
+       <div class="brand-mark">
+          <img src="{{ url_for('static', filename='gecalogo.png') }}" alt="College Logo" class="college-logo">
+        </div>
+      <span><strong>CampusGate</strong><small>GECA COLLEGE SECURITY · VISITOR MANAGEMENT</small></span>
+    </a>
+    <nav class="nav-links">
+      {% if session.get('user_id') %}
+        {% if session.get('role') == 'admin' %}
+          <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+        {% else %}
+          <a href="{{ url_for('dashboard') }}">Security Dashboard</a>
+          <a href="{{ url_for('register_visitor') }}" class="button button-primary">+ Register Visitor</a>
+        {% endif %}
+        <span class="nav-user">{{ session.get('full_name') }}</span>
+        <form method="post" action="{{ url_for('logout') }}" class="nav-logout"><button class="button button-outline" type="submit">Logout</button></form>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="button button-primary">Staff Login</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">CampusGate · College Visitor Management System</footer>
+</body>
+</html>

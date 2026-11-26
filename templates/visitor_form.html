@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visitor Registration</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <main class="page">
+    <section class="form-card">
+      <header class="form-header">
+        <div class="brand-mark">
+          <img src="{{ url_for('static', filename='gecalogo.png') }}" alt="College Logo" class="college-logo">
+        </div>
+        <h1>VISITOR REGISTRATION</h1>
+        <p>Government College Of Engineering, Chhatrapati Sambhajinagar</p>
+        <span>Please complete all required fields</span>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="messages" aria-live="polite">
+        {% for category, message in messages %}
+        <div class="message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <form method="post" action="{{ url_for('visitor_registration') }}">
+        <section class="form-section">
+          <h2><span>1</span> Personal information</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label for="full_name">Full name <b>*</b></label>
+              <input id="full_name" name="full_name" type="text" maxlength="120" placeholder="Enter full name"
+                value="{{ form.get('full_name', '') }}" required>
+            </div>
+            <div class="field">
+              <label for="mobile">Mobile number <b>*</b></label>
+              <input id="mobile" name="mobile" type="tel" inputmode="numeric" pattern="[0-9]{10}" maxlength="10"
+                placeholder="10-digit number" value="{{ form.get('mobile', '') }}" required>
+            </div>
+            <div class="field">
+              <label for="email">Email address</label>
+              <input id="email" name="email" type="email" maxlength="254" placeholder="name@example.com"
+                value="{{ form.get('email', '') }}">
+            </div>
+            <div class="field">
+              <label for="age">Age</label>
+              <input id="age" name="age" type="number" min="0" max="120" placeholder="Enter age"
+                value="{{ form.get('age', '') }}">
+            </div>
+            <div class="field">
+              <label for="gender">Gender</label>
+              <select id="gender" name="gender">
+                <option value="">Select gender</option>
+                {% for option in ["Male", "Female", "Other", "Prefer not to say"] %}
+                <option value="{{ option }}" {% if form.get('gender')==option %}selected{% endif %}>{{ option }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label for="visitor_category">Visitor category <b>*</b></label>
+              <select id="visitor_category" name="visitor_category" required>
+                <option value="">Select category</option>
+                {% for option in ["Guest", "Parent / Guardian", "Student", "Vendor / Supplier", "Interview Candidate",
+                "Official", "Other"] %}
+                <option value="{{ option }}" {% if form.get('visitor_category')==option %}selected{% endif %}>{{ option
+                  }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field full-width">
+              <label for="address">Full address</label>
+              <textarea id="address" name="address" rows="2" maxlength="500"
+                placeholder="House number, street, area">{{ form.get('address', '') }}</textarea>
+            </div>
+            <div class="field full-width">
+              <label for="city">City</label>
+              <input id="city" name="city" type="text" maxlength="100" placeholder="City"
+                value="{{ form.get('city', '') }}">
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2><span>2</span> Visit details</h2>
+          <div class="field-grid">
+            <div class="field full-width">
+              <label for="purpose">Purpose of visit <b>*</b></label>
+              <select id="purpose" name="purpose" required>
+                <option value="">Select purpose</option>
+                {% for option in ["Official Meeting", "Admission Enquiry", "Academic Work", "Interview", "Document
+                Submission", "Delivery / Maintenance", "Personal Visit", "Other"] %}
+                <option value="{{ option }}" {% if form.get('purpose')==option %}selected{% endif %}>{{ option }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field full-width">
+              <label for="number_of_visitors">Number of visitors</label>
+              <input id="number_of_visitors" name="number_of_visitors" type="number" min="1" max="100"
+                value="{{ form.get('number_of_visitors', '1') }}">
+            </div>
+          </div>
+          <p class="info-note">Visit date and check-in time are recorded automatically when this form is submitted.
+            Check-out time is recorded by authorised security staff when the visitor leaves.</p>
+        </section>
+
+        <section class="form-section">
+          <h2><span>3</span> Identity verification</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label for="id_type">ID proof type <b>*</b></label>
+              <select id="id_type" name="id_type" required>
+                <option value="">Select ID proof</option>
+                {% for option in ["Aadhaar Card", "Driving Licence", "Voter ID", "Passport", "College ID", "Company ID",
+                "Other"] %}
+                <option value="{{ option }}" {% if form.get('id_type')==option %}selected{% endif %}>{{ option }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label for="id_reference">ID number / reference</label>
+              <input id="id_reference" name="id_reference" type="text" maxlength="100" placeholder="Enter ID reference"
+                value="{{ form.get('id_reference', '') }}">
+            </div>
+          </div>
+          <p class="privacy-note">Collect only necessary ID information. Avoid storing full Aadhaar numbers or ID
+            document images unless authorised and properly protected.</p>
+        </section>
+
+        <section class="form-section">
+          <h2><span>4</span> Declaration and verification</h2>
+          <label class="check-row">
+            <input type="checkbox" name="declaration" value="accepted" required>
+            <span>I confirm that the information provided is correct and agree to follow the organisation's visitor and
+              security rules. <b>*</b></span>
+          </label>
+          <label class="check-row">
+            <input type="checkbox" name="security_acknowledgement" value="accepted">
+            <span>I understand that my entry and exit times may be recorded for security purposes.</span>
+          </label>
+        </section>
+
+        <aside class="staff-note">
+          <h3>For security staff / administration</h3>
+          <p>Visitor ID, approval status, ID verification result, badge number, approved by, entry time and exit time
+            are managed in the staff application.</p>
+        </aside>
+
+        <button class="submit-button" type="submit">Submit Registration <span aria-hidden="true">→</span></button>
+      </form>
+      <footer>Fields marked <b>*</b> are required.</footer>
+    </section>
+  </main>
+</body>
+
+</html>
